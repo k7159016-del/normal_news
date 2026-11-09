@@ -17,9 +17,10 @@ NATION_FEEDS = {
 }
 
 PUNJAB_FEEDS = {
-    "TOI Chandigarh/Punjab": "https://timesofindia.indiatimes.com/rssfeeds/3908285.cms",
-    "Indian Express (North)": "https://indianexpress.com/section/cities/chandigarh/feed/",
-    "News18 Punjab": "https://punjabi.news18.com/rss/punjab.xml",
+    "Hindustan Times (Chandigarh/Punjab)": "https://www.hindustantimes.com/feeds/rss/cities/chandigarh/rssfeed.xml",
+    "Zee News (Punjab)": "https://zeenews.india.com/rss/punjab-news.xml",
+    "ABP News (Punjab)": "https://punjabi.abplive.com/states/punjab/feed",
+    "Times of India (Chandigarh)": "https://timesofindia.indiatimes.com/rssfeeds/3908285.cms",
 }
 
 ECONOMY_FEEDS = {
@@ -255,14 +256,26 @@ def parse_rss(xml_data, source):
 
 @st.cache_data(ttl=300)
 def fetch_feed(url, source):
+    # Added stronger browser headers to prevent 403 Forbidden blocks
     headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0 Safari/537.36",
-        "Accept": "application/rss+xml,application/xml,text/xml,*/*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1"
     }
-    response = requests.get(url, headers=headers, timeout=30)
+    
+    # Bypass SSL verification warnings if a regional news site has expired certificates
+    response = requests.get(url, headers=headers, timeout=15, verify=False)
     response.raise_for_status()
+    
     return parse_rss(response.content, source)
 
+    
 def fetch_sources(feeds):
     articles = []
     errors = []
